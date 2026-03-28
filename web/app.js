@@ -24,6 +24,36 @@ const pillPresenter = document.getElementById("pillPresenter");
 let agentStageTimer = null;
 let replayToken = 0;
 const stagePills = [pillProfiler, pillSearch, pillRanker, pillPresenter];
+const agentPixel = document.getElementById("agentPixel");
+
+let runtimeFrameTimer = null;
+let runtimeFrameIndex = 0;
+let runtimeVisualState = "idle";
+
+const RUNTIME_FRAME_SETS = {
+  idle: ["/static/assets/runtime/idle-1.svg", "/static/assets/runtime/idle-2.svg"],
+  profiler: ["/static/assets/runtime/profiler-1.svg", "/static/assets/runtime/profiler-2.svg", "/static/assets/runtime/profiler-3.svg"],
+  search: ["/static/assets/runtime/search-1.svg", "/static/assets/runtime/search-2.svg", "/static/assets/runtime/search-3.svg"],
+  ranker: ["/static/assets/runtime/ranker-1.svg", "/static/assets/runtime/ranker-2.svg", "/static/assets/runtime/ranker-3.svg"],
+  presenter: ["/static/assets/runtime/presenter-1.svg", "/static/assets/runtime/presenter-2.svg", "/static/assets/runtime/presenter-3.svg"],
+  done: ["/static/assets/runtime/done-1.svg", "/static/assets/runtime/done-2.svg"],
+  error: ["/static/assets/runtime/error-1.svg", "/static/assets/runtime/error-2.svg"],
+};
+
+function renderRuntimeFrame() {
+  if (!agentPixel) return;
+  const frames = RUNTIME_FRAME_SETS[runtimeVisualState] || RUNTIME_FRAME_SETS.idle;
+  const frame = frames[runtimeFrameIndex % frames.length];
+  if (agentPixel.getAttribute("src") !== frame) {
+    agentPixel.setAttribute("src", frame);
+  }
+  runtimeFrameIndex = (runtimeFrameIndex + 1) % frames.length;
+}
+
+function startRuntimeFrameLoop() {
+  if (runtimeFrameTimer) clearInterval(runtimeFrameTimer);
+  runtimeFrameTimer = setInterval(renderRuntimeFrame, 120);
+}
 
 function setStatus(message, isError = false) {
   statusText.textContent = message;
@@ -72,6 +102,11 @@ function setRuntimeVisualState(state) {
   const pipeline = document.querySelector('.agent-pipeline');
   if (pipeline) {
     pipeline.className = `agent-pipeline state-${state}`;
+  }
+  if (runtimeVisualState !== state) {
+    runtimeVisualState = state;
+    runtimeFrameIndex = 0;
+    renderRuntimeFrame();
   }
 }
 
@@ -410,6 +445,7 @@ function bindQuickPrompts() {
 form.addEventListener("submit", requestRecommendations);
 healthBtn.addEventListener("click", checkSpotifyHealth);
 bindQuickPrompts();
+startRuntimeFrameLoop();
 checkLlmHealth();
 checkSpotifyHealth();
 setAgentStage(0, "Idle • Menunggu perintah");

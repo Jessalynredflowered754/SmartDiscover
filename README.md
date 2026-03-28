@@ -1,46 +1,62 @@
-# SmartDiscover
+<div align="center">
+  <img src="./web/assets/logo.svg" alt="SmartDiscover Logo" width="180"/>
+  <h1>✨ SmartDiscover</h1>
+  <p><strong>Multi-Agent Music Discovery Assistant</strong></p>
 
-MVP backend untuk SmartDiscover (Multi-Agent Music Discovery Assistant) dengan alur:
-1. Profiler Agent
-2. Spotify Search Agent
-3. Filter and Ranker Agent
-4. Presenter Agent
+  [![Python Validation](https://img.shields.io/badge/Python-3.9%2B-blue?style=for-the-badge&logo=python&logoColor=white)](#)
+  [![FastAPI Backbone](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)](#)
+  [![Vanilla JS Frontend](https://img.shields.io/badge/Vanilla_JS-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](#)
+  [![Spotify API Integration](https://img.shields.io/badge/Spotify_API-1DB954?style=for-the-badge&logo=spotify&logoColor=white)](#)
+  [![OpenRouter LLM](https://img.shields.io/badge/OpenRouter-Multi_Agent-purple?style=for-the-badge)](#)
+</div>
 
-## Fitur MVP
-- Endpoint `POST /recommend` dengan output full JSON schema siap konsumsi API
-- Endpoint `GET /health`
-- Endpoint `GET /spotify/health`
-- Endpoint `GET /llm/health`
-- Dashboard web Vanilla JS di root path `/`
-- Fallback mock candidate jika kredensial Spotify belum tersedia
-- Profiler dan Ranker berjalan LLM-first via OpenRouter dengan fallback heuristik
-- Tidak menggunakan endpoint Spotify deprecated (`/audio-features`, `/recommendations`)
+---
 
-## Setup
-1. Buat virtual environment
-2. Install dependency
-3. Salin `.env.example` menjadi `.env`
-4. Jalankan server
+SmartDiscover adalah MVP backend cerdas untuk *Multi-Agent Music Discovery Assistant*. Sistem ini bekerja layaknya asisten musik pribadimu: meracik rekomendasi lagu berbasis konteks dengan membagi tugas ke **4 spesialis agen** untuk menghasilkan daftar akhir lagu yang akurat, relevan, dan terpersonalisasi.
 
-Contoh perintah PowerShell:
+## 🚀 Alur Kerja Multi-Agent
+1. 🧠 **Profiler Agent**: Mengekstraksi mood, aktivitas, dan konteks linguistik murni dari kalimat instruksi pengguna.
+2. 🔍 **Spotify Search Agent**: Menarik kandidat lagu multi-kueri langsung dari Spotify menggunakan penyesuaian parameter (*search broadening*).
+3. ⚖️ **Filter & Ranker Agent**: Mengevaluasi kandidat lagu, mencegah spam artis, dan memberikan skor relevansi dinamis.
+4. 🎁 **Presenter Agent**: Merangkum hasil temuan, menyusun hasil kurasi terbaik menjadi struktur playlist API final.
 
-```powershell
+## ✨ Fitur Utama
+- 🎯 **Endpoint Presisi:** POST /recommend menghasilkan *Output JSON Schema* yang kokoh tanpa *hallucinations*.
+- ⚡ **Diagnostics Tools:** Cek performa independen (/health, /spotify/health, /llm/health).
+- 🖥️ **Live Web Dashboard:** UI responsif bersih dengan antarmuka lintasan agen yang beranimasi seketika (_Realtime Pixel tracking_).
+- 🛡️ **Resilient Fallback:** Mendukung *Mock Candidates* saat kredensial Spotify absen, serta *Heuristic Rule-matching* otomatis saat layanan LLM terputus.
+- 🚫 **Modern Endpointing:** Bebas limitasi API kadaluarsa (Tidak lagi bergantung pada /recommendations API lawas).
+
+## 🛠️ Cara Setup & Run Singkat
+
+**1. Buat Virtual Environment & Install Dependensi**
+`powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
+`
+
+**2. Siapkan Environment Variables**
+Salin \.env.example\ menjadi \.env\.
+`powershell
 Copy-Item .env.example .env
+`
+
+**3. Nyalakan Engine 🚀**
+`powershell
 uvicorn app.main:app --reload
-```
+`
 
-Setelah server jalan, buka dashboard:
-- http://127.0.0.1:8000/
+> **🌐 Tautan Lokal:**
+> - Web Interaktif (Dashboard): [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
+> - Struktur API / Dokumentasi Swagger: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 
-Endpoint docs tetap tersedia di:
-- http://127.0.0.1:8000/docs
+---
 
-## Contoh Request
+## 📝 Demo Request API
 
-```http
+**Contoh Payload POST \/recommend\:**
+`http
 POST /recommend
 Content-Type: application/json
 
@@ -48,57 +64,31 @@ Content-Type: application/json
   "text": "aku mau lagu buat belajar malam yang tenang dan fokus",
   "target_count": 15
 }
-```
+`
 
-## Contoh Response (ringkas)
-```json
+**Cuplikan Struktur JSON (Response):**
+`json
 {
-  "summary": {
-    "input_language": "id",
-    "intent_text": "aku mau lagu buat belajar malam yang tenang dan fokus",
-    "target_count": 15,
-    "returned_count": 15
-  },
-  "intent_profile": {
-    "mood": "calm",
-    "activity": "studying",
-    "genre": ["lo-fi"],
-    "energy": "low",
-    "language": "id"
-  },
-  "query_strategy": {
-    "variants": ["calm studying", "studying low"],
-    "broadening_applied": false,
-    "notes": "..."
-  },
+  "summary": { "input_language": "id", "returned_count": 15 },
+  "intent_profile": { "mood": "calm", "activity": "studying", "energy": "low" },
   "recommendations": [
     {
       "rank": 1,
       "title": "Midnight Focus",
       "artist": "Loftline",
-      "spotify_url": "",
-      "preview_url": "",
       "why": "Cocok untuk studying dengan nuansa calm dan energi low.",
-      "score": 0.4123
+      "score": 0.412
     }
-  ],
-  "quality_notes": {
-    "deduplicated": true,
-    "fallback_used": false,
-    "fallback_reason": ""
-  }
+  ]
 }
-```
+`
 
-## Catatan Integrasi Spotify
-Isi variabel berikut pada `.env` agar search benar-benar memanggil Spotify:
-- `SPOTIFY_CLIENT_ID`
-- `SPOTIFY_CLIENT_SECRET`
+---
 
-## Catatan Integrasi OpenRouter
-Isi variabel berikut pada `.env` untuk mengaktifkan LLM multi-agent:
-- `OPENROUTER_API_KEY`
-- `OPENROUTER_MODEL` (default: `google/gemini-2.5-flash-lite`)
-- `OPENROUTER_BASE_URL` (default: `https://openrouter.ai/api/v1`)
+## 🔑 Konfigurasi Rahasia (\.env\)
 
-Jika API key tidak ada atau request gagal, pipeline otomatis fallback ke mode heuristik.
+| Ekosistem API | Variabel Kunci | Peran / Nilai Awal |
+|---|---|---|
+| **Spotify Search** | \SPOTIFY_CLIENT_ID\ <br> \SPOTIFY_CLIENT_SECRET\ | Akses *realtime data* Spotify. Jika kosong akan dialihkan ke mode *Mock Candidates*. |
+| **OpenRouter Engine** | \OPENROUTER_API_KEY\<br>\OPENROUTER_MODEL\<br>\OPENROUTER_BASE_URL\ | Mengaktivasikan otak LLM untuk Pipeline Agent. (Default: \google/gemini-2.5-flash-lite\). |
+

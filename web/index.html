@@ -82,12 +82,17 @@
         </div>
 
         <div id="agentFlow" class="agent-flow" data-stage="0">
-            <div class="agent-pipeline">
+            <div class="agent-pipeline state-idle">
+              <img id="agentPixel" src="/static/assets/runtime/idle-1.svg" class="pixel-agent" alt="Agent Pixel Animation" />
               <div class="pipeline-track">
                 <div id="pipelineProgress" class="pipeline-progress"></div>
-                <div id="pipelineBeam" class="pipeline-beam"></div>
               </div>
-          </div>
+            </div>
+            <div class="stage-pills" aria-label="Tahap agent">
+              <p id="pillProfiler" class="stage-pill">Profiler</p>
+              <p id="pillSearch" class="stage-pill">Search</p>
+              <p id="pillRanker" class="stage-pill">Ranker</p>
+              <p id="pillPresenter" class="stage-pill">Presenter</p>
         </div>
 
         <p id="agentMetrics" class="agent-metrics">Milestone backend akan tampil setelah request selesai.</p>

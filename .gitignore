@@ -1,7 +1,28 @@
-__pycache__/
-*.pyc
-.venv/
+# Environments
 .env
-.pytest_cache/
+.env.local
+.venv/
+env/
+venv/
+
 .github
 
+# Python
+__pycache__/
+*.py[cod]
+*.class
+.pytest_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# IDE / OS
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+.DS_Store
+Thumbs.db

@@ -579,7 +579,8 @@ input:focus {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 12px;
+  margin-bottom: 24px;
+  margin-top: 36px;
 }
 
 .pipeline-track {
@@ -598,26 +599,25 @@ input:focus {
   transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.4s ease, box-shadow 0.4s ease;
 }
 
-.pipeline-beam {
+.pixel-agent {
   position: absolute;
-  top: 0;
-  left: -30%;
-  height: 100%;
-  width: 30%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), transparent);
-  opacity: 0;
-  transition: opacity 0.3s ease;
+  top: -20px;
+  width: 28px;
+  height: 28px;
+  left: 0%;
+  margin-left: -14px;
+  transition: left 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  image-rendering: pixelated;
+  z-index: 10;
 }
 
-@keyframes beamTravel {
-  0% { left: -30%; }
-  100% { left: 100%; }
-}
-
-.agent-flow.is-working .pipeline-beam {
-  opacity: 1;
-  animation: beamTravel 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-}
+.agent-pipeline.state-idle .pixel-agent { left: 0%; transform: scaleX(1); }
+.agent-pipeline.state-profiler .pixel-agent { left: 25%; transform: scaleX(1); }
+.agent-pipeline.state-search .pixel-agent { left: 50%; transform: scaleX(1); }
+.agent-pipeline.state-ranker .pixel-agent { left: 75%; transform: scaleX(1);  }
+.agent-pipeline.state-presenter .pixel-agent { left: 90%; transform: scaleX(1); }
+.agent-pipeline.state-done .pixel-agent { left: 100%; transform: scaleX(1); }
+.agent-pipeline.state-error .pixel-agent { left: 100%; transform: scaleX(1); filter: grayscale(1); }
 
 .agent-pipeline.state-idle .pipeline-progress { width: 0%; }
 .agent-pipeline.state-profiler .pipeline-progress { width: 25%; background: var(--primary); box-shadow: 0 0 10px rgba(87,210,181,0.5); }
@@ -626,7 +626,6 @@ input:focus {
 .agent-pipeline.state-presenter .pipeline-progress { width: 90%; background: #ff8fb1; box-shadow: 0 0 10px rgba(255,143,177,0.5); }
 .agent-pipeline.state-done .pipeline-progress { width: 100%; background: var(--success); box-shadow: 0 0 12px rgba(116,225,165,0.6); }
 .agent-pipeline.state-error .pipeline-progress { width: 100%; background: var(--danger); box-shadow: 0 0 12px rgba(255,107,107,0.6); }
-.agent-pipeline.state-error .pipeline-beam { opacity: 0 !important; animation: none; }
 
 .stage-pills {
   display: grid;
