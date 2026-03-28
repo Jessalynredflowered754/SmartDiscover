@@ -98,10 +98,14 @@ cp .env.example .env
 
 ```ini
 OPENROUTER_API_KEY="your-openrouter-api-key"
+OPENROUTER_MODEL="google/gemini-2.5-flash-lite"
+OPENROUTER_BASE_URL="https://openrouter.ai/api/v1"
 SPOTIFY_CLIENT_ID="your-spotify-client-id"
 SPOTIFY_CLIENT_SECRET="your-spotify-client-secret"
 SPOTIFY_REDIRECT_URI=""
 ```
+
+You can switch the LLM model at runtime via `OPENROUTER_MODEL` (for example `openai/gpt-4o-mini`, `anthropic/claude-3.5-sonnet`, or any model available in your OpenRouter account).
 
 For production deployments (for example Vercel), set `SPOTIFY_REDIRECT_URI` explicitly to the exact callback URL registered in Spotify Dashboard, such as:
 
