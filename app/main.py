@@ -1,4 +1,5 @@
-from fastapi import FastAPI, Request
+import httpx
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -79,9 +80,26 @@ async def callback(request: Request, code: str):
 
 @app.post("/create-playlist")
 async def create_playlist(payload: CreatePlaylistRequest) -> dict:
-    return await pipeline.spotify.create_playlist(
-        user_token=payload.user_token,
-        title=payload.title,
-        description=payload.description,
-        track_ids=payload.track_ids
-    )
+    try:
+        return await pipeline.spotify.create_playlist(
+            user_token=payload.user_token,
+            title=payload.title,
+            description=payload.description,
+            track_ids=payload.track_ids,
+        )
+    except httpx.HTTPStatusError as exc:
+        status = exc.response.status_code if exc.response is not None else 500
+        if status == 401:
+            raise HTTPException(
+                status_code=401,
+                detail="Spotify session expired or unauthorized. Please reconnect Spotify.",
+            )
+        raise HTTPException(
+            status_code=status,
+            detail=f"Spotify API error ({status}).",
+        )
+    except Exception:
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to create Spotify playlist due to an internal server error.",
+        )

@@ -367,9 +367,34 @@ function renderRecommendations(data) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
-        
-        const resData = await res.json();
-        
+
+        let resData = {};
+        const contentType = res.headers.get("content-type") || "";
+        if (contentType.includes("application/json")) {
+          resData = await res.json();
+        } else {
+          const rawText = await res.text();
+          resData = { error: rawText || "Unknown server error" };
+        }
+
+        if (!res.ok) {
+          if (res.status === 401) {
+            localStorage.removeItem("spotify_token");
+            if (spotifyLoginBtn) {
+              spotifyLoginBtn.textContent = "Connect Spotify";
+              spotifyLoginBtn.style.backgroundColor = "transparent";
+              spotifyLoginBtn.style.border = "1px solid rgba(255,255,255,0.2)";
+              spotifyLoginBtn.style.color = "#ccc";
+              spotifyLoginBtn.disabled = false;
+            }
+            throw new Error("Spotify session expired. Please connect Spotify again.");
+          }
+
+          throw new Error(
+            resData.detail || resData.error || `Failed to create playlist (${res.status})`
+          );
+        }
+
         if (resData.url) {
           exportBtn.textContent = "Playlist Created! (Click to Open)";
           exportBtn.style.opacity = "1";
