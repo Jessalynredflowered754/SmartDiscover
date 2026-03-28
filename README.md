@@ -94,6 +94,19 @@ Jangan khawatir tentang error jika kamu tak sengaja salah masukkin kredensial ta
 - **Kamu belum masukkan Spotify Keys di .env?** Dashboard UI kamu tidak akan hancur dan *crash*, SmartDiscover akan otomatis "beralih" mode menjadi versi *Mock Candidates Mode* sekadar agar antarmuka Pixel Tracker tetap bisa kamu demonstrasikan! (Sangat direkomendasikan bagi Front-End Enginners).
 
 
+---
+
+## ⚖️ Lisensi & Legalitas
+
+**SmartDiscover** didistribusikan di bawah [MIT License](LICENSE). 
+Hak Cipta (c) 2026 wahyu muliadi siregar. Kamu bebas untuk menggunakan, memodifikasi, dan mendistribusikan kode proyek ini secara bebas untuk keperluan pribadi maupun komersial.
+
+**⚠️ Sangkalan (Disclaimer):**
+Aplikasi ini beroperasi menggunakan fasilitas API pihak ketiga (Spotify & platform LLM eksternal).
+- Proyek ini murni merupakan karya pihak ketiga (independen) dan **sama sekali tidak berafiliasi, disponsori, atau didukung secara resmi oleh Spotify**.
+- Semua lisensi logo, aset merek, dan hak dagang Spotify adalah murni milik _Spotify AB_.
+- Penggunaan integrasi dan *API Key* mengikuti tunduk pada *Terms of Service* perusahaan penyedia terkait.
+
 <div align="center">
   <br>
   <i>Dirancang teliti dengan dedikasi AI Algoritma.</i>
