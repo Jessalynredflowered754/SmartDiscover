@@ -100,7 +100,16 @@ cp .env.example .env
 OPENROUTER_API_KEY="your-openrouter-api-key"
 SPOTIFY_CLIENT_ID="your-spotify-client-id"
 SPOTIFY_CLIENT_SECRET="your-spotify-client-secret"
+SPOTIFY_REDIRECT_URI=""
 ```
+
+For production deployments (for example Vercel), set `SPOTIFY_REDIRECT_URI` explicitly to the exact callback URL registered in Spotify Dashboard, such as:
+
+```text
+https://smart-discover.vercel.app/callback
+```
+
+Important: Spotify requires an exact match (scheme, domain, and path).
 
 ### 4) Run the Application
 

@@ -4,6 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     spotify_client_id: str = ""
     spotify_client_secret: str = ""
+    spotify_redirect_uri: str = ""
     openrouter_api_key: str = ""
     openrouter_model: str = "google/gemini-2.5-flash-lite"
     openrouter_base_url: str = "https://openrouter.ai/api/v1"

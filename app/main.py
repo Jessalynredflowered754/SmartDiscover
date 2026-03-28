@@ -3,6 +3,7 @@ from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+from app.config import settings
 from app.models import RecommendRequest, RecommendResponse
 from app.services.pipeline import RecommendationPipeline
 
@@ -16,6 +17,16 @@ class CreatePlaylistRequest(BaseModel):
 app = FastAPI(title="SmartDiscover API", version="0.1.0")
 pipeline = RecommendationPipeline()
 app.mount("/static", StaticFiles(directory="web"), name="static")
+
+
+def _resolve_redirect_uri(request: Request) -> str:
+    # If explicitly configured (recommended for production), use it as-is.
+    configured = settings.spotify_redirect_uri.strip()
+    if configured:
+        return configured
+
+    # Fallback for local/dev environments.
+    return str(request.base_url) + "auth/callback"
 
 
 @app.get("/", include_in_schema=False)
@@ -47,15 +58,15 @@ async def recommend(payload: RecommendRequest) -> RecommendResponse:
 
 @app.get("/auth/login")
 def login(request: Request):
-    # Construct redirect URI based on the incoming request to be dynamic
-    redirect_uri = str(request.base_url) + "auth/callback"
+    redirect_uri = _resolve_redirect_uri(request)
     url = pipeline.spotify.get_authorization_url(redirect_uri)
     return RedirectResponse(url)
 
 
 @app.get("/auth/callback")
+@app.get("/callback")
 async def callback(request: Request, code: str):
-    redirect_uri = str(request.base_url) + "auth/callback"
+    redirect_uri = _resolve_redirect_uri(request)
     try:
         token_info = await pipeline.spotify.get_user_token(code, redirect_uri)
         # We redirect back to UI with token as hash/query param for the frontend to pick up
