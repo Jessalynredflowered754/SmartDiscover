@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SmartDiscover Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;700;800&family=Space+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="magic-grid" aria-hidden="true"></div>
+    <div class="bg-orb orb-a"></div>
+    <div class="bg-orb orb-b"></div>
+
+    <main class="layout">
+      <header class="hero fade-up">
+        <p class="eyebrow">SMARTDISCOVER</p>
+        <h1><span class="gradient-title">Temukan Lagu Sesuai Mood Kamu</span></h1>
+        <p class="subtitle">
+          Cukup tulis suasana hati atau aktivitasmu, SmartDiscover akan memilihkan lagu yang pas.
+        </p>
+      </header>
+
+      <section class="panel fade-up delay-1">
+        <div class="panel-head">
+          <h2>Mulai Rekomendasi</h2>
+          <div class="panel-actions">
+            <p id="llmBadge" class="health-badge neutral">LLM: checking...</p>
+            <p id="spotifyBadge" class="health-badge neutral">Spotify: checking...</p>
+            <button id="healthBtn" class="ghost-btn" type="button">Check Spotify Health</button>
+          </div>
+        </div>
+
+        <div class="quick-prompts" id="quickPrompts">
+          <button class="chip-btn" type="button" data-intent="lagu fokus buat kerja malam yang tenang">
+            Fokus Kerja
+          </button>
+          <button class="chip-btn" type="button" data-intent="lagu santai buat healing sore hari">
+            Healing Sore
+          </button>
+          <button class="chip-btn" type="button" data-intent="lagu energik untuk olahraga pagi">
+            Olahraga Pagi
+          </button>
+          <button class="chip-btn" type="button" data-intent="lagu mellow untuk hujan malam">
+            Hujan Malam
+          </button>
+        </div>
+
+        <form id="recommendForm" class="form-grid">
+          <label>
+            Ceritakan Mood / Aktivitas
+            <textarea
+              id="intentInput"
+              rows="4"
+              placeholder="Contoh: aku mau lagu buat belajar malam yang tenang dan fokus"
+              required
+            ></textarea>
+          </label>
+
+          <div class="inline-fields">
+            <label>
+              Jumlah Lagu
+              <input id="targetCountInput" type="number" min="1" max="50" value="15" />
+            </label>
+
+            <button id="submitBtn" class="primary-btn" type="submit">Cari Rekomendasi</button>
+          </div>
+        </form>
+
+        <p id="statusText" class="status">Ready.</p>
+      </section>
+
+      <section class="panel agent-visual fade-up delay-2">
+        <div class="panel-head compact">
+          <h2>Agent Activity</h2>
+          <p id="agentStageText" class="agent-stage-text">Idle • Menunggu perintah</p>
+        </div>
+
+        <div id="agentFlow" class="agent-flow" data-stage="0">
+            <div class="agent-pipeline">
+              <div class="pipeline-track">
+                <div id="pipelineProgress" class="pipeline-progress"></div>
+                <div id="pipelineBeam" class="pipeline-beam"></div>
+              </div>
+          </div>
+        </div>
+
+        <p id="agentMetrics" class="agent-metrics">Milestone backend akan tampil setelah request selesai.</p>
+      </section>
+
+      <section class="grid-results fade-up delay-3">
+        <article class="panel">
+          <h2>Ringkasan Hasil</h2>
+          <div class="summary-grid">
+            <div class="summary-card">
+              <p class="summary-label">Mood</p>
+              <p id="summaryMood" class="summary-value">-</p>
+            </div>
+            <div class="summary-card">
+              <p class="summary-label">Aktivitas</p>
+              <p id="summaryActivity" class="summary-value">-</p>
+            </div>
+            <div class="summary-card">
+              <p class="summary-label">Jumlah Lagu</p>
+              <p id="summaryCount" class="summary-value">0</p>
+            </div>
+            <div class="summary-card">
+              <p class="summary-label">Mode AI</p>
+              <p id="summaryMode" class="summary-value">-</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <h2>Rekomendasi Terbaik Untukmu</h2>
+          <p id="resultLead" class="result-lead">Tulis mood kamu lalu klik Cari Rekomendasi.</p>
+          <div id="recommendationList" class="recommendation-grid"></div>
+        </article>
+      </section>
+    </main>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>
