@@ -118,6 +118,29 @@ Open the app at http://127.0.0.1:8000/
 - "A bright and upbeat vibe for an afternoon road trip"
 - "Relaxing background music for reading, preferably instrumental"
 
+## Create Spotify Playlists
+
+After generating recommendations, you can save them directly to your Spotify account.
+
+### User Flow
+
+1. **Connect Spotify**: Click the **Connect Spotify** button in the sidebar and sign in to Spotify.
+2. **Authorize Access**: Approve playlist permissions when prompted.
+3. **Generate Recommendations**: Run your prompt as usual.
+4. **Save as Spotify Playlist**: Click **Save as Spotify Playlist** to create a playlist from the selected tracks.
+
+### Required OAuth Scopes
+
+SmartDiscover requests the following Spotify scopes:
+
+- `playlist-modify-public`
+- `playlist-modify-private`
+
+### Privacy Behavior
+
+Playlists created by SmartDiscover are **private by default**.
+You can change playlist visibility later from your Spotify account.
+
 ## Fallback Mode
 
 If Spotify credentials are missing or invalid, the application still runs in fallback mode so the interface can be demonstrated.
