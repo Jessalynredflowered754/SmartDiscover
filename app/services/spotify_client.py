@@ -1,3 +1,6 @@
+import asyncio
+import json
+import re
 import time
 from typing import Any
 
@@ -13,6 +16,8 @@ class SpotifyClient:
     SEARCH_URL = "https://api.spotify.com/v1/search"
     AUTHORIZE_URL = "https://accounts.spotify.com/authorize"
     PROFILE_URL = "https://api.spotify.com/v1/me"
+    EMBED_TRACK_URL = "https://open.spotify.com/embed/track/{track_id}"
+    EMBED_PREVIEW_MAX_LOOKUPS = 10
 
     LOCALE_TERMS = {
         "indonesia": ["indonesia", "indonesian", "nusantara", "tanah air", "merah putih", "garuda"],
@@ -71,12 +76,21 @@ class SpotifyClient:
 
         candidates: dict[str, TrackCandidate] = {}
         
-        # STRATEGI BARU: Cari playlist organik berdasarkan mood/aktivitas
-        # Ini menghindari rekomendasi harfiah seperti judul lagu "melancholy"
+        # STRATEGI BARU: Cari playlist organik berdasarkan intent utama.
+        # Untuk intent genre-only (mis. "lagu batak"), prioritaskan query genre.
         locale_suffix = f" {profile.locale}" if profile.locale else ""
-        playlist_q = f"{profile.mood} {profile.activity}{locale_suffix}".strip()
-        if not playlist_q and profile.genre:
-            playlist_q = f"{profile.genre[0]}{locale_suffix}".strip()
+        explicit_genre_only = bool(profile.genre) and profile.mood == "neutral" and profile.activity == "listening"
+        if explicit_genre_only:
+            if profile.language == "id":
+                playlist_q = f"lagu {profile.genre[0]}".strip()
+            else:
+                playlist_q = f"{profile.genre[0]} songs".strip()
+            if locale_suffix:
+                playlist_q = f"{playlist_q}{locale_suffix}".strip()
+        else:
+            playlist_q = f"{profile.mood} {profile.activity}{locale_suffix}".strip()
+            if not playlist_q and profile.genre:
+                playlist_q = f"{profile.genre[0]}{locale_suffix}".strip()
             
         async with httpx.AsyncClient(timeout=20.0) as client:
             p_resp = await client.get(
@@ -137,6 +151,8 @@ class SpotifyClient:
                             )
 
         final_candidates = list(candidates.values())
+        preview_fallback_count = await self._enrich_missing_previews(candidates, target_count)
+        final_candidates = list(candidates.values())
         strict_filtered_count = 0
         if profile.locale and profile.strict_locale:
             filtered = self._filter_by_locale(final_candidates, profile.locale)
@@ -153,7 +169,68 @@ class SpotifyClient:
             "locale": profile.locale,
             "strict_locale": profile.strict_locale,
             "strict_filtered_count": strict_filtered_count,
+            "preview_fallback_count": preview_fallback_count,
         }
+
+    async def _enrich_missing_previews(self, candidates: dict[str, TrackCandidate], target_count: int) -> int:
+        missing_track_ids = [track_id for track_id, candidate in candidates.items() if not candidate.preview_url]
+        if not missing_track_ids:
+            return 0
+
+        lookup_limit = min(self.EMBED_PREVIEW_MAX_LOOKUPS, max(4, target_count * 2))
+        lookup_ids = missing_track_ids[:lookup_limit]
+
+        async with httpx.AsyncClient(
+            timeout=10.0,
+            follow_redirects=True,
+            headers={"User-Agent": "SmartDiscover/1.0"},
+        ) as client:
+            tasks = [self._fetch_preview_from_embed(client, track_id) for track_id in lookup_ids]
+            responses = await asyncio.gather(*tasks, return_exceptions=True)
+
+        filled = 0
+        for track_id, preview_url in zip(lookup_ids, responses):
+            if isinstance(preview_url, Exception) or not isinstance(preview_url, str) or not preview_url:
+                continue
+
+            candidate = candidates.get(track_id)
+            if candidate and not candidate.preview_url:
+                candidate.preview_url = preview_url
+                filled += 1
+
+        return filled
+
+    async def _fetch_preview_from_embed(self, client: httpx.AsyncClient, track_id: str) -> str | None:
+        try:
+            url = self.EMBED_TRACK_URL.format(track_id=track_id)
+            response = await client.get(url)
+            if response.status_code != 200:
+                return None
+            return self._extract_preview_from_embed_html(response.text)
+        except Exception:
+            return None
+
+    @staticmethod
+    def _extract_preview_from_embed_html(html: str) -> str | None:
+        match = re.search(r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', html, re.S)
+        if not match:
+            return None
+
+        try:
+            json_data = json.loads(match.group(1))
+        except Exception:
+            return None
+
+        audio_preview = (
+            json_data.get("props", {})
+            .get("pageProps", {})
+            .get("state", {})
+            .get("data", {})
+            .get("entity", {})
+            .get("audioPreview", {})
+            .get("url")
+        )
+        return audio_preview if isinstance(audio_preview, str) and audio_preview else None
 
     async def _get_access_token(self) -> str:
         now = time.time()
@@ -180,6 +257,9 @@ class SpotifyClient:
             f"{profile.mood} playlist{locale_suffix}",
         ]
         base.extend(f"{g} {profile.activity}{locale_suffix}" for g in genres[:3])
+        base.extend(f"{g} songs{locale_suffix}" for g in genres[:3])
+        if profile.language == "id":
+            base.extend(f"lagu {g}{locale_suffix}" for g in genres[:3])
         if profile.locale:
             base.append(f"{profile.locale} patriotic songs")
             base.append(f"{profile.locale} national songs")

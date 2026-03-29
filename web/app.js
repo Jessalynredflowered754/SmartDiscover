@@ -37,6 +37,12 @@ let lastRuntimeFrameAt = 0;
 let currentRuntimeFrameSrc = "";
 let currentPreviewAudio = null;
 let currentPreviewButton = null;
+let currentPreviewCard = null;
+let currentPreviewProgressFill = null;
+let currentPreviewElapsed = null;
+let currentPreviewDuration = null;
+let currentPreviewMeter = null;
+let currentPreviewRaf = 0;
 
 const prefersReducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 const coarsePointerQuery = window.matchMedia("(pointer: coarse)");
@@ -213,6 +219,83 @@ function setRuntimeVisualState(state) {
   }
 }
 
+function formatPreviewTime(seconds) {
+  const safeSeconds = Number.isFinite(seconds) && seconds > 0 ? seconds : 0;
+  const mins = Math.floor(safeSeconds / 60);
+  const secs = Math.floor(safeSeconds % 60);
+  return `${mins}:${String(secs).padStart(2, "0")}`;
+}
+
+function stopPreviewProgressLoop() {
+  if (currentPreviewRaf) {
+    cancelAnimationFrame(currentPreviewRaf);
+    currentPreviewRaf = 0;
+  }
+}
+
+function updatePreviewProgressUI() {
+  if (!currentPreviewAudio || !currentPreviewProgressFill || !currentPreviewElapsed) {
+    stopPreviewProgressLoop();
+    return;
+  }
+
+  const duration = Number.isFinite(currentPreviewAudio.duration) && currentPreviewAudio.duration > 0
+    ? currentPreviewAudio.duration
+    : 30;
+  const currentTime = Math.max(0, currentPreviewAudio.currentTime || 0);
+  const progressPct = Math.min(100, (currentTime / duration) * 100);
+
+  currentPreviewProgressFill.style.width = `${progressPct}%`;
+  if (currentPreviewMeter) {
+    currentPreviewMeter.setAttribute("aria-valuenow", String(Math.round(progressPct)));
+  }
+  currentPreviewElapsed.textContent = formatPreviewTime(currentTime);
+  if (currentPreviewDuration) {
+    currentPreviewDuration.textContent = `${formatPreviewTime(duration)} preview`;
+  }
+
+  if (!currentPreviewAudio.paused && !currentPreviewAudio.ended) {
+    currentPreviewRaf = requestAnimationFrame(updatePreviewProgressUI);
+  } else {
+    stopPreviewProgressLoop();
+  }
+}
+
+function resetCurrentPreviewUI() {
+  if (currentPreviewButton) {
+    currentPreviewButton.setAttribute("aria-pressed", "false");
+    currentPreviewButton.setAttribute("aria-label", "Play preview 30 detik");
+    currentPreviewButton.textContent = "Play";
+  }
+  if (currentPreviewCard) {
+    currentPreviewCard.classList.remove("is-preview-playing");
+  }
+  if (currentPreviewProgressFill) {
+    currentPreviewProgressFill.style.width = "0%";
+  }
+  if (currentPreviewMeter) {
+    currentPreviewMeter.setAttribute("aria-valuenow", "0");
+  }
+  if (currentPreviewElapsed) {
+    currentPreviewElapsed.textContent = "0:00";
+  }
+  stopPreviewProgressLoop();
+}
+
+function clearCurrentPreviewState() {
+  if (currentPreviewAudio) {
+    currentPreviewAudio.pause();
+  }
+  resetCurrentPreviewUI();
+  currentPreviewAudio = null;
+  currentPreviewButton = null;
+  currentPreviewCard = null;
+  currentPreviewProgressFill = null;
+  currentPreviewElapsed = null;
+  currentPreviewDuration = null;
+  currentPreviewMeter = null;
+}
+
 async function replayStagesFromMetrics(stageMs) {
   const token = ++replayToken;
   const sequence = [
@@ -308,15 +391,7 @@ function renderSummary(data) {
 
 function renderRecommendations(data) {
   recommendationList.innerHTML = "";
-  if (currentPreviewAudio) {
-    currentPreviewAudio.pause();
-    currentPreviewAudio = null;
-  }
-  if (currentPreviewButton) {
-    currentPreviewButton.setAttribute("aria-pressed", "false");
-    currentPreviewButton.textContent = "Play Preview";
-    currentPreviewButton = null;
-  }
+  clearCurrentPreviewState();
   const list = data.recommendations || [];
 
   if (!list.length) {
@@ -366,47 +441,94 @@ function renderRecommendations(data) {
     const actions = document.createElement("div");
     actions.className = "track-actions";
 
-    if (item.preview_url) {
+    {
+      const hasPreview = Boolean(item.preview_url);
+      const previewCluster = document.createElement("div");
+      previewCluster.className = "preview-cluster";
+      if (!hasPreview) {
+        previewCluster.classList.add("is-unavailable");
+      }
+
       const previewBtn = document.createElement("button");
       previewBtn.type = "button";
       previewBtn.className = "preview-btn";
       previewBtn.setAttribute("aria-pressed", "false");
-      previewBtn.textContent = "Play Preview";
+      previewBtn.setAttribute("aria-label", "Play preview 30 detik");
+      previewBtn.textContent = "Play";
 
-      previewBtn.addEventListener("click", () => {
+      const previewMeter = document.createElement("div");
+      previewMeter.className = "preview-meter";
+      previewMeter.setAttribute("role", "progressbar");
+      previewMeter.setAttribute("aria-label", "Progress preview lagu");
+      previewMeter.setAttribute("aria-valuemin", "0");
+      previewMeter.setAttribute("aria-valuemax", "100");
+      previewMeter.setAttribute("aria-valuenow", "0");
+
+      const previewMeterFill = document.createElement("span");
+      previewMeterFill.className = "preview-meter-fill";
+      previewMeter.appendChild(previewMeterFill);
+
+      const previewTime = document.createElement("div");
+      previewTime.className = "preview-time";
+
+      const elapsed = document.createElement("span");
+      elapsed.textContent = "0:00";
+
+      const duration = document.createElement("span");
+      duration.textContent = hasPreview ? "0:30 preview" : "preview unavailable";
+
+      previewTime.appendChild(elapsed);
+      previewTime.appendChild(duration);
+
+      if (!hasPreview) {
+        previewBtn.disabled = true;
+        previewBtn.setAttribute("aria-label", "Preview tidak tersedia untuk track ini");
+        previewBtn.textContent = "No Preview";
+      }
+
+      previewCluster.appendChild(previewBtn);
+      previewCluster.appendChild(previewMeter);
+      previewCluster.appendChild(previewTime);
+
+      if (hasPreview) {
+        previewBtn.addEventListener("click", () => {
         const isCurrent = currentPreviewButton === previewBtn;
 
         if (isCurrent && currentPreviewAudio && !currentPreviewAudio.paused) {
           currentPreviewAudio.pause();
-          previewBtn.setAttribute("aria-pressed", "false");
-          previewBtn.textContent = "Play Preview";
+          resetCurrentPreviewUI();
           return;
         }
 
-        if (currentPreviewAudio) {
-          currentPreviewAudio.pause();
-        }
-        if (currentPreviewButton) {
-          currentPreviewButton.setAttribute("aria-pressed", "false");
-          currentPreviewButton.textContent = "Play Preview";
-        }
+        clearCurrentPreviewState();
 
         const audio = new Audio(item.preview_url);
         audio.volume = 0.95;
+        audio.preload = "metadata";
+
+        audio.addEventListener("loadedmetadata", () => {
+          if (duration) {
+            duration.textContent = `${formatPreviewTime(audio.duration || 30)} preview`;
+          }
+        });
 
         audio.addEventListener("ended", () => {
-          previewBtn.setAttribute("aria-pressed", "false");
-          previewBtn.textContent = "Play Preview";
+          resetCurrentPreviewUI();
           if (currentPreviewButton === previewBtn) {
             currentPreviewButton = null;
             currentPreviewAudio = null;
+            currentPreviewCard = null;
+            currentPreviewProgressFill = null;
+            currentPreviewElapsed = null;
+            currentPreviewDuration = null;
           }
         });
 
         audio.addEventListener("pause", () => {
           if (audio.ended) return;
-          previewBtn.setAttribute("aria-pressed", "false");
-          previewBtn.textContent = "Play Preview";
+          if (currentPreviewButton === previewBtn) {
+            resetCurrentPreviewUI();
+          }
         });
 
         audio
@@ -414,17 +536,27 @@ function renderRecommendations(data) {
           .then(() => {
             currentPreviewAudio = audio;
             currentPreviewButton = previewBtn;
+            currentPreviewCard = card;
+            currentPreviewProgressFill = previewMeterFill;
+            currentPreviewElapsed = elapsed;
+            currentPreviewDuration = duration;
+            currentPreviewMeter = previewMeter;
             previewBtn.setAttribute("aria-pressed", "true");
-            previewBtn.textContent = "Pause Preview";
+            previewBtn.setAttribute("aria-label", "Pause preview");
+            previewBtn.textContent = "Pause";
+            card.classList.add("is-preview-playing");
+            updatePreviewProgressUI();
           })
           .catch(() => {
             setStatus("Preview tidak bisa diputar di browser ini atau diblokir autoplay.", true);
             previewBtn.setAttribute("aria-pressed", "false");
-            previewBtn.textContent = "Play Preview";
+            previewBtn.setAttribute("aria-label", "Play preview 30 detik");
+            previewBtn.textContent = "Play";
           });
-      });
+        });
+      }
 
-      actions.appendChild(previewBtn);
+      actions.appendChild(previewCluster);
     }
 
     if (isLongReason) {
@@ -559,15 +691,7 @@ function renderRecommendations(data) {
 }
 
 function renderLoadingSkeleton(targetCount) {
-  if (currentPreviewAudio) {
-    currentPreviewAudio.pause();
-    currentPreviewAudio = null;
-  }
-  if (currentPreviewButton) {
-    currentPreviewButton.setAttribute("aria-pressed", "false");
-    currentPreviewButton.textContent = "Play Preview";
-    currentPreviewButton = null;
-  }
+  clearCurrentPreviewState();
   const count = Math.max(4, Math.min(Number(targetCount) || 6, 8));
   recommendationList.innerHTML = "";
   resultLead.textContent = "Sedang menyiapkan daftar lagu paling cocok...";

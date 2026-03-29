@@ -2,6 +2,13 @@ from app.models import IntentProfile, TrackCandidate
 from app.services.openrouter_client import OpenRouterClient
 
 
+GENRE_HINTS = {
+    "batak": ["batak", "toba", "mandailing", "karo", "simalungun", "pakpak"],
+    "jawa": ["jawa", "javanese", "campursari", "keroncong", "koplo"],
+    "minang": ["minang", "minangkabau", "padang"],
+}
+
+
 class RankerAgent:
     def __init__(self, llm: OpenRouterClient) -> None:
         self.llm = llm
@@ -96,6 +103,15 @@ class RankerAgent:
             relevance += 0.35
         if profile.activity in text:
             relevance += 0.25
+
+        for genre in profile.genre:
+            genre_lower = genre.lower()
+            hints = GENRE_HINTS.get(genre_lower, [genre_lower])
+            if any(h in text for h in hints):
+                relevance += 0.32
+            elif len(profile.genre) == 1:
+                # Penalize off-target results for explicit single-genre intent.
+                relevance -= 0.06
 
         mood_energy_fit = 0.15
         if profile.energy == "low" and any(k in text for k in ["quiet", "soft", "calm", "slow"]):

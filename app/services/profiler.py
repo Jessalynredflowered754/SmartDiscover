@@ -1,4 +1,6 @@
 import re
+import json
+from pathlib import Path
 
 from app.models import IntentProfile
 from app.services.openrouter_client import OpenRouterClient
@@ -20,6 +22,9 @@ GENRE_KEYWORDS = {
     "rock": ["rock"],
     "jazz": ["jazz"],
     "indie": ["indie"],
+    "batak": ["batak", "toba", "mandailing", "karo", "simalungun", "pakpak"],
+    "jawa": ["jawa", "javanese", "campursari", "keroncong", "dangdut koplo"],
+    "minang": ["minang", "minang kabau", "minangkabau", "padang"],
 }
 
 LOCALE_KEYWORDS = {
@@ -45,6 +50,51 @@ STRICT_LOCALE_CUES = [
     "kebangsaan",
     "national anthem",
 ]
+
+GENRE_ALIASES: dict[str, str] = {
+    "javanese": "jawa",
+    "minangkabau": "minang",
+    "minang kabau": "minang",
+    "lofi": "lo-fi",
+}
+
+
+def _load_keyword_config() -> tuple[
+    dict[str, list[str]],
+    dict[str, list[str]],
+    dict[str, list[str]],
+    list[str],
+    dict[str, str],
+]:
+    config_path = Path(__file__).with_name("intent_keywords.json")
+    try:
+        data = json.loads(config_path.read_text(encoding="utf-8"))
+        mood_keywords = data.get("mood_keywords")
+        genre_keywords = data.get("genre_keywords")
+        locale_keywords = data.get("locale_keywords")
+        strict_locale_cues = data.get("strict_locale_cues")
+        genre_aliases = data.get("genre_aliases")
+        if (
+            isinstance(mood_keywords, dict)
+            and isinstance(genre_keywords, dict)
+            and isinstance(locale_keywords, dict)
+            and isinstance(strict_locale_cues, list)
+            and isinstance(genre_aliases, dict)
+        ):
+            return (
+                {str(k): [str(v) for v in values] for k, values in mood_keywords.items() if isinstance(values, list)},
+                {str(k): [str(v) for v in values] for k, values in genre_keywords.items() if isinstance(values, list)},
+                {str(k): [str(v) for v in values] for k, values in locale_keywords.items() if isinstance(values, list)},
+                [str(v) for v in strict_locale_cues],
+                {str(k).lower(): str(v) for k, v in genre_aliases.items()},
+            )
+    except Exception:
+        pass
+
+    return MOOD_KEYWORDS, GENRE_KEYWORDS, LOCALE_KEYWORDS, STRICT_LOCALE_CUES, GENRE_ALIASES
+
+
+MOOD_KEYWORDS, GENRE_KEYWORDS, LOCALE_KEYWORDS, STRICT_LOCALE_CUES, GENRE_ALIASES = _load_keyword_config()
 
 
 class ProfilerAgent:
@@ -102,7 +152,7 @@ class ProfilerAgent:
             mood = str(data.get("mood", "neutral"))
             activity = str(data.get("activity", "listening"))
             genre_value = data.get("genre", [])
-            genre = [str(g) for g in genre_value] if isinstance(genre_value, list) else []
+            genre = self._normalize_genres([str(g) for g in genre_value]) if isinstance(genre_value, list) else []
 
             energy = str(data.get("energy", "medium")).lower()
             if energy not in {"low", "medium", "high"}:
@@ -154,7 +204,18 @@ class ProfilerAgent:
         for genre, keys in GENRE_KEYWORDS.items():
             if any(k in lowered for k in keys):
                 genres.append(genre)
-        return genres
+        return self._normalize_genres(genres)
+
+    def _normalize_genres(self, genres: list[str]) -> list[str]:
+        normalized: list[str] = []
+        seen: set[str] = set()
+        for genre in genres:
+            lowered = genre.strip().lower()
+            canonical = GENRE_ALIASES.get(lowered, lowered)
+            if canonical and canonical not in seen:
+                seen.add(canonical)
+                normalized.append(canonical)
+        return normalized
 
     def _infer_energy(self, lowered: str) -> str:
         if any(k in lowered for k in ["tenang", "calm", "slow", "santai"]):

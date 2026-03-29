@@ -1,0 +1,49 @@
+{
+  "mood_keywords": {
+    "calm": ["tenang", "calm", "chill", "relax", "healing"],
+    "focus": ["fokus", "focus", "study", "belajar", "deep work"],
+    "happy": ["senang", "happy", "fun", "ceria"],
+    "sad": ["galau", "sad", "melancholy", "sedih"],
+    "energetic": ["energik", "energetic", "workout", "lari", "gym"]
+  },
+  "genre_keywords": {
+    "lo-fi": ["lofi", "lo-fi"],
+    "ambient": ["ambient"],
+    "classical": ["classical", "klasik"],
+    "pop": ["pop"],
+    "rock": ["rock"],
+    "jazz": ["jazz"],
+    "indie": ["indie"],
+    "batak": ["batak", "toba", "mandailing", "karo", "simalungun", "pakpak"],
+    "jawa": ["jawa", "javanese", "campursari", "keroncong", "dangdut koplo"],
+    "minang": ["minang", "minang kabau", "minangkabau", "padang"]
+  },
+  "locale_keywords": {
+    "indonesia": [
+      "indonesia",
+      "indonesian",
+      "nusantara",
+      "tanah air",
+      "merah putih",
+      "nkri",
+      "warga indonesia",
+      "lagu nasional indonesia"
+    ]
+  },
+  "strict_locale_cues": [
+    "nasionalisme",
+    "nationalism",
+    "patriotik",
+    "patriotic",
+    "kemerdekaan",
+    "independence",
+    "kebangsaan",
+    "national anthem"
+  ],
+  "genre_aliases": {
+    "javanese": "jawa",
+    "minangkabau": "minang",
+    "minang kabau": "minang",
+    "lofi": "lo-fi"
+  }
+}
