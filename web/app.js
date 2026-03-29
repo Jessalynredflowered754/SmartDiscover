@@ -34,7 +34,16 @@ let runtimeVisualState = "idle";
 let lastRuntimeFrameAt = 0;
 let currentRuntimeFrameSrc = "";
 
-const RUNTIME_FRAME_INTERVAL_MS = 120;
+const prefersReducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+const coarsePointerQuery = window.matchMedia("(pointer: coarse)");
+
+function getRuntimeFrameIntervalMs() {
+  if (prefersReducedMotionQuery.matches) return 240;
+  if (coarsePointerQuery.matches) return 160;
+  return 120;
+}
+
+let runtimeFrameIntervalMs = getRuntimeFrameIntervalMs();
 
 const RUNTIME_FRAME_SETS = {
   idle: ["/static/assets/runtime/idle-1.svg", "/static/assets/runtime/idle-2.svg"],
@@ -71,11 +80,20 @@ function renderRuntimeFrame() {
 }
 
 function runtimeFrameTick(timestamp) {
-  if (!lastRuntimeFrameAt || (timestamp - lastRuntimeFrameAt) >= RUNTIME_FRAME_INTERVAL_MS) {
+  if (!lastRuntimeFrameAt || (timestamp - lastRuntimeFrameAt) >= runtimeFrameIntervalMs) {
     renderRuntimeFrame();
     lastRuntimeFrameAt = timestamp;
   }
   runtimeFrameTimer = requestAnimationFrame(runtimeFrameTick);
+}
+
+function bindRuntimePreferences() {
+  const syncInterval = () => {
+    runtimeFrameIntervalMs = getRuntimeFrameIntervalMs();
+  };
+
+  prefersReducedMotionQuery.addEventListener("change", syncInterval);
+  coarsePointerQuery.addEventListener("change", syncInterval);
 }
 
 function startRuntimeFrameLoop() {
@@ -598,6 +616,7 @@ if (spotifyLoginBtn) {
 form.addEventListener("submit", requestRecommendations);
 healthBtn.addEventListener("click", checkSpotifyHealth);
 bindQuickPrompts();
+bindRuntimePreferences();
 startRuntimeFrameLoop();
 checkLlmHealth();
 checkSpotifyHealth();

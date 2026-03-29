@@ -35,7 +35,7 @@
           <div class="input-group row-group">
              <div>
                 <label for="targetCountInput">Berapa Lagu?</label>
-                <input id="targetCountInput" type="number" min="5" max="50" value="15" />
+               <input id="targetCountInput" type="number" inputmode="numeric" min="5" max="50" value="15" />
              </div>
              
              <div class="badges-stacked">
@@ -44,7 +44,7 @@
              </div>
           </div>
 
-          <p id="statusText" class="status-msg">Siap menerima perintah.</p>
+          <p id="statusText" class="status-msg" role="status" aria-live="polite">Siap menerima perintah.</p>
 
           <!-- Magic Shimmer Button -->
           <button id="submitBtn" class="shimmer-btn" type="submit">
@@ -129,18 +129,33 @@
 
     <script src="/static/app.js"></script>
     <script>
-      // Magic Card Mouse Glow Effect Injector
-      document.addEventListener("pointermove", (e) => {
-        const card = e.target.closest(".magic-card");
-        if (!card) return;
+      // Magic Card glow only runs on hover-capable pointers to avoid extra work on touch devices.
+      const canHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+      if (canHover) {
+        let pointerRaf = 0;
+        let activeCard = null;
+        let pointerX = 0;
+        let pointerY = 0;
 
-        const rect = card.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        document.addEventListener("pointermove", (e) => {
+          const card = e.target.closest(".magic-card");
+          if (!card) return;
+          activeCard = card;
+          pointerX = e.clientX;
+          pointerY = e.clientY;
 
-        card.style.setProperty("--mouse-x", `${x}px`);
-        card.style.setProperty("--mouse-y", `${y}px`);
-      }, { passive: true });
+          if (pointerRaf) return;
+          pointerRaf = requestAnimationFrame(() => {
+            pointerRaf = 0;
+            if (!activeCard) return;
+            const rect = activeCard.getBoundingClientRect();
+            const x = pointerX - rect.left;
+            const y = pointerY - rect.top;
+            activeCard.style.setProperty("--mouse-x", `${x}px`);
+            activeCard.style.setProperty("--mouse-y", `${y}px`);
+          });
+        }, { passive: true });
+      }
     </script>
   </body>
 </html>

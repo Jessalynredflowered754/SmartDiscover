@@ -13,6 +13,9 @@
   
   --brand-primary: #1DB954;
   --brand-glow: rgba(29, 185, 84, 0.4);
+  --focus-ring: #6ef0a0;
+  --touch-target-min: 44px;
+  --mobile-padding: 14px;
   
   --font-sans: 'Inter', sans-serif;
   --font-mono: 'Space Mono', monospace;
@@ -26,6 +29,7 @@ body {
   font-family: var(--font-sans);
   line-height: 1.5;
   overflow-x: hidden;
+  text-size-adjust: 100%;
 }
 
 /* --- Magic UI: Retro Grid --- */
@@ -60,8 +64,8 @@ body {
 .bento-layout {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 24px;
-  padding: 24px;
+  gap: 16px;
+  padding: max(var(--mobile-padding), env(safe-area-inset-top)) var(--mobile-padding) max(var(--mobile-padding), env(safe-area-inset-bottom));
   max-width: 1400px;
   margin: 0 auto;
   min-height: 100vh;
@@ -79,8 +83,8 @@ body {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border-color);
-  border-radius: 20px; /* slightly smaller radius for more elegant feel */
-  padding: 24px;
+  border-radius: 18px;
+  padding: 18px;
   box-shadow: 0 4px 24px -1px rgba(0,0,0,0.5);
 }
 
@@ -88,9 +92,9 @@ body {
 .bento-sidebar {
   display: flex;
   flex-direction: column;
-  gap: 32px;
-  position: sticky;
-  top: 32px;
+  gap: 24px;
+  position: static;
+  top: auto;
   height: max-content;
 }
 
@@ -106,13 +110,18 @@ body {
 }
 
 .gradient-title {
-  font-size: 2.2rem;
+  font-size: clamp(1.7rem, 5.5vw, 2.2rem);
   font-weight: 700;
   letter-spacing: -0.05em;
   line-height: 1.1;
   background: linear-gradient(180deg, #FFFFFF 0%, #a1a1aa 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
 }
 
 /* --- Quick Form --- */
@@ -130,17 +139,18 @@ body {
   resize: vertical;
   transition: border-color 0.2s;
 }
+.input-group input { min-height: var(--touch-target-min); }
 .input-group textarea:focus, .input-group input:focus {
   outline: none;
   border-color: var(--brand-primary);
 }
 
-.row-group { flex-direction: row; justify-content: space-between; align-items: flex-end; }
+.row-group { flex-direction: column; justify-content: flex-start; align-items: stretch; gap: 10px; }
 .row-group > div { display: flex; flex-direction: column; gap: 8px; }
-.row-group input[type="number"] { width: 80px; text-align: center; }
+.row-group input[type="number"] { width: 100%; text-align: left; }
 
 .badges-stacked {
-  display: flex; flex-direction: column; gap: 6px; align-items: flex-end;
+  display: flex; flex-direction: column; gap: 6px; align-items: flex-start;
 }
 .health-badge {
   font-size: 0.7rem;
@@ -162,7 +172,8 @@ body {
   background: #000;
   border: 1px solid rgba(29, 185, 84, 0.5);
   border-radius: 12px;
-  padding: 14px;
+  min-height: var(--touch-target-min);
+  padding: 12px 14px;
   color: white;
   font-weight: 600;
   cursor: pointer;
@@ -187,7 +198,8 @@ body {
   background: rgba(255,255,255,0.05);
   border: 1px solid rgba(255,255,255,0.1);
   color: #ccc;
-  padding: 6px 12px;
+  min-height: var(--touch-target-min);
+  padding: 8px 14px;
   border-radius: 20px;
   font-size: 0.8rem;
   cursor: pointer;
@@ -201,11 +213,23 @@ body {
   background: transparent;
   border: 1px solid rgba(255,255,255,0.2);
   color: #ccc;
-  padding: 8px;
+  min-height: var(--touch-target-min);
+  padding: 10px;
   border-radius: 8px;
   font-size: 0.8rem;
   cursor: pointer;
   transition: 0.2s;
+}
+
+.shimmer-btn:focus-visible,
+.chip-btn:focus-visible,
+.magic-btn-outline:focus-visible,
+.text-btn:focus-visible,
+.track-link:focus-visible,
+.input-group textarea:focus-visible,
+.input-group input:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 .magic-btn-outline:hover { background: rgba(255,255,255,0.1); color: white; }
 .magic-btn-outline[disabled] { opacity: 0.5; cursor: not-allowed; }
@@ -222,7 +246,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 8px 10px;
+  padding: 10px 12px;
   border-radius: 10px;
 }
 .pipeline-header {
@@ -311,7 +335,7 @@ body {
 
 .recommendation-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: 1fr;
   gap: 16px;
 }
 
@@ -354,6 +378,7 @@ body {
   color: var(--text-secondary); text-decoration: none;
   border-bottom: 1px solid transparent; transition: 0.2s;
 }
+.text-btn { min-height: 34px; }
 .text-btn:hover, .track-link:hover { color: white; border-bottom-color: white; }
 
 /* Utilities */
@@ -380,4 +405,95 @@ body {
 .skeleton-line.short { width: 40%; }
 .skeleton-line.medium { width: 70%; }
 @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+@media (min-width: 768px) {
+  .row-group {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .row-group input[type="number"] {
+    width: 88px;
+    text-align: center;
+  }
+
+  .badges-stacked {
+    align-items: flex-end;
+  }
+
+  .recommendation-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .glass-panel {
+    padding: 24px;
+  }
+
+  .bento-sidebar {
+    gap: 32px;
+    position: sticky;
+    top: 32px;
+  }
+
+  .system-actions {
+    display: flex;
+  }
+
+  .recommendation-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .bento-layout {
+    gap: 12px;
+  }
+
+  .track-top {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .system-actions {
+    flex-direction: column;
+  }
+
+  .status-msg {
+    margin-top: -2px;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .magic-card::before {
+    display: none;
+  }
+
+  .chip-btn:hover,
+  .magic-btn-outline:hover,
+  .text-btn:hover,
+  .track-link:hover {
+    border-bottom-color: transparent;
+    color: inherit;
+    background: inherit;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-in,
+  .enter,
+  .retro-grid,
+  .shimmer-btn::before {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .pixel-agent,
+  .track-active,
+  .track-step .dot {
+    transition: none !important;
+  }
+}
 
