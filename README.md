@@ -26,6 +26,7 @@ SmartDiscover is a 4-agent AI music recommendation system. Instead of relying on
 | Multi-agent pipeline | More targeted results than a single-step prompt |
 | Spotify integration | Real-time candidate tracks from Spotify's catalog |
 | Context-based ranking | Better alignment with user mood and activity |
+| Preview-aware retrieval | Better chance to get playable 30s previews |
 | Playlist-ready output | Recommendations can be executed immediately |
 
 ## 4-Agent Architecture
@@ -153,6 +154,19 @@ SmartDiscover requests the following Spotify scopes:
 
 Playlists created by SmartDiscover are **private by default**.
 You can change playlist visibility later from your Spotify account.
+
+## Audio Preview Behavior
+
+SmartDiscover includes a mini preview player in each recommendation card.
+
+- If Spotify provides `preview_url`, the card shows an active **Play/Pause** preview control.
+- If `preview_url` is missing, SmartDiscover applies a backend fallback by checking Spotify Embed metadata (`__NEXT_DATA__`) to recover `audioPreview.url` when available.
+- If no preview is found after fallback, the card still shows a disabled **No Preview** state so users can see that preview is unavailable for that track.
+
+Notes:
+
+- Preview availability is controlled by Spotify catalog metadata and may vary by region/licensing.
+- Fallback is best-effort and bounded per request to keep latency stable.
 
 ## Fallback Mode
 
