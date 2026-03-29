@@ -204,6 +204,49 @@ function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function toTitleCaseToken(value) {
+  if (!value || typeof value !== "string") return "";
+  return value
+    .replace(/[_-]+/g, " ")
+    .trim()
+    .split(/\s+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function buildPlaylistTitle(data, sourceText) {
+  const profile = data?.intent_profile || {};
+  const activity = profile.activity && profile.activity !== "listening"
+    ? toTitleCaseToken(profile.activity)
+    : "";
+  const genre = Array.isArray(profile.genre) && profile.genre.length
+    ? toTitleCaseToken(String(profile.genre[0]))
+    : "";
+  const promptFallback = String(sourceText || "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 24);
+
+  const core = activity || genre || promptFallback || "Personal Mix";
+  const dateText = new Date().toISOString().slice(0, 10);
+  return `SmartDiscover - ${core} - ${dateText}`;
+}
+
+function buildPlaylistDescription(data, sourceText) {
+  const profile = data?.intent_profile || {};
+  const activity = toTitleCaseToken(profile.activity || "Listening");
+  const mood = toTitleCaseToken(profile.mood || "Neutral");
+  const promptCompact = String(sourceText || "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 80);
+
+  if (promptCompact) {
+    return `SmartDiscover auto playlist for ${activity} (${mood}). Prompt: ${promptCompact}`;
+  }
+  return `SmartDiscover auto playlist for ${activity} (${mood}).`;
+}
+
 function setRuntimeVisualState(state) {
   if (pipelinePanel) {
     if (state === "error") {
@@ -389,7 +432,7 @@ function renderSummary(data) {
   summaryMode.textContent = `${profilerMode}/${rankerMode}`;
 }
 
-function renderRecommendations(data) {
+function renderRecommendations(data, sourceText = "") {
   recommendationList.innerHTML = "";
   clearCurrentPreviewState();
   const list = data.recommendations || [];
@@ -629,8 +672,8 @@ function renderRecommendations(data) {
           
         const payload = {
           user_token: localStorage.getItem("spotify_token"),
-          title: `SmartDiscover: ${data.intent_profile?.mood || "Playlist"}`,
-          description: `Rekomendasi playlist otomatis untuk aktivitas: ${data.intent_profile?.activity || "Personal"}`,
+          title: buildPlaylistTitle(data, sourceText),
+          description: buildPlaylistDescription(data, sourceText),
           track_ids: trackIds,
         };
         
@@ -745,7 +788,7 @@ async function requestRecommendations(event) {
 
     const data = await response.json();
     renderSummary(data);
-    renderRecommendations(data);
+    renderRecommendations(data, text);
 
     const quality = data.quality_notes || {};
     const profilerMode = quality.llm_profiler_used ? "LLM" : "heuristic";
