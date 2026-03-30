@@ -1229,6 +1229,13 @@ body {
     transition: none !important;
   }
 
+  /* Ensure content is still visible when motion is reduced on iOS. */
+  .fade-in,
+  .enter {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
   .pixel-agent,
   .track-active,
   .track-step .dot {
