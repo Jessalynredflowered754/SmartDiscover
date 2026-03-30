@@ -17,8 +17,9 @@
   --beam-color-b: rgba(155, 255, 221, 0.08);
   --accent-warm: #ffc971;
   --focus-ring: #6ef0a0;
-  --touch-target-min: 40px;
+  --touch-target-min: 44px;
   --mobile-padding: 14px;
+  --mobile-section-gap: 10px;
   
   --font-sans: 'Sora', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
@@ -31,7 +32,9 @@ body {
   color: var(--text-primary);
   font-family: var(--font-sans);
   line-height: 1.5;
-  overflow-x: hidden;
+  overflow-x: clip;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  overscroll-behavior-y: contain;
   text-size-adjust: 100%;
   background-image:
     radial-gradient(1400px 550px at -10% -10%, rgba(59, 130, 246, 0.12), transparent 62%),
@@ -77,6 +80,7 @@ body {
   max-width: 1400px;
   margin: 0 auto;
   min-height: 100vh;
+  min-height: 100dvh;
 }
 @media (min-width: 1024px) {
   .bento-layout {
@@ -91,8 +95,8 @@ body {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border-color);
-  border-radius: 20px;
-  padding: 14px;
+  border-radius: clamp(14px, 2.4vw, 20px);
+  padding: clamp(12px, 2vw, 16px);
   box-shadow: 0 10px 44px -18px rgba(2, 8, 20, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
@@ -227,6 +231,14 @@ body {
   font-size: 0.78rem;
   cursor: pointer;
   transition: 0.2s;
+}
+
+.shimmer-btn,
+.magic-btn-outline,
+.preview-btn,
+.track-link,
+.text-btn {
+  min-height: var(--touch-target-min);
 }
 
 .shimmer-btn:focus-visible,
@@ -568,6 +580,8 @@ body {
   padding: 18px;
   overflow: hidden;
   box-shadow: 0 14px 28px -18px rgba(0, 0, 0, 0.92);
+  content-visibility: auto;
+  contain-intrinsic-size: 320px;
 }
 .magic-card::before {
   content: "";
@@ -800,6 +814,146 @@ body {
   }
 }
 
+@media (max-width: 767px) {
+  .bento-layout {
+    gap: var(--mobile-section-gap);
+    padding:
+      max(var(--mobile-padding), env(safe-area-inset-top))
+      max(var(--mobile-padding), env(safe-area-inset-right))
+      max(calc(var(--mobile-padding) + 6px), env(safe-area-inset-bottom))
+      max(var(--mobile-padding), env(safe-area-inset-left));
+  }
+
+  .bento-content {
+    gap: 12px;
+  }
+
+  .hero {
+    gap: 6px;
+  }
+
+  .gradient-title {
+    font-size: clamp(1.55rem, 7vw, 1.95rem);
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+  }
+
+  .control-form {
+    gap: 10px;
+  }
+
+  .status-msg {
+    min-height: 20px;
+  }
+
+  .chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    margin-inline: -2px;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  .chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .chip-btn {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+    white-space: nowrap;
+  }
+
+  .system-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .system-actions .magic-btn-outline,
+  .shimmer-btn {
+    width: 100%;
+  }
+
+  .insight-strip {
+    padding: 10px;
+  }
+
+  .insight-value {
+    font-size: 0.8rem;
+  }
+
+  .bento-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .stat-box {
+    padding: 10px;
+  }
+
+  .stat-val {
+    font-size: 0.96rem;
+  }
+
+  .results-header h2 {
+    font-size: 1.2rem;
+  }
+
+  .results-header {
+    display: grid;
+    gap: 6px;
+  }
+
+  .result-lead {
+    font-size: 0.86rem;
+  }
+
+  .recommendation-grid {
+    gap: 10px;
+  }
+
+  .magic-card {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .track-rank,
+  .track-score {
+    font-size: 0.68rem;
+  }
+
+  .track-top {
+    margin-bottom: 8px;
+  }
+
+  .track-title {
+    font-size: 1rem;
+    line-height: 1.35;
+  }
+
+  .track-meta {
+    margin-bottom: 8px;
+    font-size: 0.76rem;
+  }
+
+  .track-why {
+    font-size: 0.82rem;
+    line-height: 1.55;
+  }
+
+  .track-actions {
+    margin-top: 12px;
+    gap: 10px;
+  }
+
+  .empty-state {
+    padding: 24px 14px;
+  }
+}
+
 @media (min-width: 1024px) {
   .glass-panel {
     padding: 16px;
@@ -852,7 +1006,11 @@ body {
 
 @media (max-width: 480px) {
   .bento-layout {
-    gap: 12px;
+    gap: 10px;
+  }
+
+  .glass-panel {
+    border-radius: 13px;
   }
 
   .pipeline-header {
@@ -863,6 +1021,10 @@ body {
   .pipeline-panel {
     padding: 12px;
     gap: 8px;
+  }
+
+  .pipeline-header h3 {
+    font-size: 0.88rem;
   }
 
   .insight-tile {
@@ -923,9 +1085,119 @@ body {
   .preview-cluster .preview-btn {
     width: 100%;
   }
+
+  .bento-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 390px) and (max-width: 480px) {
+  .bento-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .stat-box {
+    min-height: 78px;
+  }
+}
+
+@media (min-width: 412px) and (max-width: 767px) {
+  .results-panel {
+    gap: 14px;
+  }
+
+  .magic-card {
+    padding: 15px;
+  }
+}
+
+@media (min-width: 430px) and (max-width: 767px) {
+  .bento-layout {
+    max-width: 430px;
+  }
+
+  .track-title {
+    font-size: 1.04rem;
+  }
+}
+
+@media (max-width: 360px) {
+  :root {
+    --mobile-padding: 10px;
+  }
+
+  .hero-badge {
+    font-size: 0.67rem;
+    padding: 3px 9px;
+  }
+
+  .input-group textarea,
+  .input-group input {
+    font-size: 0.85rem;
+    padding: 9px;
+  }
+
+  .shimmer-btn,
+  .chip-btn,
+  .magic-btn-outline {
+    font-size: 0.74rem;
+  }
+
+  .track-title {
+    font-size: 0.95rem;
+  }
+
+  .track-meta {
+    font-size: 0.72rem;
+  }
+
+  .stage-text {
+    font-size: 0.62rem;
+    padding: 3px 7px;
+  }
+
+  .preview-time {
+    font-size: 0.6rem;
+  }
+}
+
+@media (max-width: 320px) {
+  :root {
+    --mobile-padding: 8px;
+  }
+
+  .gradient-title {
+    font-size: 1.42rem;
+  }
+
+  .subtitle,
+  .status-msg {
+    font-size: 0.76rem;
+  }
+
+  .pipeline-header h3 {
+    font-size: 0.82rem;
+  }
+
+  .step-label {
+    font-size: 0.5rem;
+  }
+
+  .stat-label {
+    font-size: 0.67rem;
+  }
+
+  .stat-val {
+    font-size: 0.9rem;
+  }
 }
 
 @media (hover: none) and (pointer: coarse) {
+  .retro-grid {
+    animation: none;
+    opacity: 0.34;
+  }
+
   .magic-card::before {
     display: none;
   }
