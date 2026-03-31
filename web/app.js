@@ -10,6 +10,7 @@ const quickPrompts = document.getElementById("quickPrompts");
 const statusText = document.getElementById("statusText");
 const recommendationList = document.getElementById("recommendationList");
 const resultLead = document.getElementById("resultLead");
+const resultsPanel = document.querySelector(".results-panel");
 const summaryMood = document.getElementById("summaryMood");
 const summaryActivity = document.getElementById("summaryActivity");
 const summaryCount = document.getElementById("summaryCount");
@@ -159,7 +160,7 @@ const I18N = {
     detailCloseAria: "Tutup",
     openSpotify: "Buka di Spotify",
     exportSave: "Save as Spotify Playlist",
-    exportLogin: "Login to Save to Spotify",
+    exportLogin: "Login to create playlist on spotify",
     exportCreating: "Creating Playlist...",
     exportCreated: "Playlist Created! (Click to Open)",
     exportErrorTryAgain: "Error. Try Again",
@@ -259,7 +260,7 @@ const I18N = {
     detailCloseAria: "Close",
     openSpotify: "Open in Spotify",
     exportSave: "Save as Spotify Playlist",
-    exportLogin: "Login to Save to Spotify",
+    exportLogin: "Login to create playlist on spotify",
     exportCreating: "Creating Playlist...",
     exportCreated: "Playlist Created! (Click to Open)",
     exportErrorTryAgain: "Error. Try Again",
@@ -840,6 +841,10 @@ function renderSummary(data) {
 function renderRecommendations(data, sourceText = "") {
   lastRenderedData = data;
   lastRenderedSourceText = sourceText;
+  const existingExportBar = document.getElementById("exportActionBar");
+  if (existingExportBar) {
+    existingExportBar.remove();
+  }
   recommendationList.innerHTML = "";
   clearCurrentPreviewState();
   const list = data.recommendations || [];
@@ -1042,16 +1047,12 @@ function renderRecommendations(data, sourceText = "") {
 
   if (list.length > 0) {
     const exportContainer = document.createElement("div");
-    exportContainer.style.setProperty("grid-column", "1 / -1");
-    exportContainer.style.marginTop = "24px";
-    exportContainer.style.display = "flex";
-    exportContainer.style.justifyContent = "center";
+    exportContainer.id = "exportActionBar";
+    exportContainer.className = "export-action-bar";
 
     const exportBtn = document.createElement("button");
     exportBtn.className = "shimmer-btn";
-    exportBtn.style.width = "100%";
-    exportBtn.style.maxWidth = "400px";
-    exportBtn.style.marginTop = "16px";
+    exportBtn.classList.add("export-action-btn");
 
     exportBtn.onmouseover = () => { exportBtn.style.transform = "scale(1.05)"; };
     exportBtn.onmouseout = () => { exportBtn.style.transform = "scale(1)"; };
@@ -1133,7 +1134,11 @@ function renderRecommendations(data, sourceText = "") {
     });
 
     exportContainer.appendChild(exportBtn);
-    recommendationList.appendChild(exportContainer);
+    if (resultsPanel) {
+      resultsPanel.insertBefore(exportContainer, recommendationList);
+    } else {
+      recommendationList.prepend(exportContainer);
+    }
   }
 }
 

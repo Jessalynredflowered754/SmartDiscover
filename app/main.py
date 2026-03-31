@@ -3,10 +3,12 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+import logging
 
 from app.config import settings
 from app.models import RecommendRequest, RecommendResponse
 from app.services.pipeline import RecommendationPipeline
+from app.services.prompt_store import PromptStore
 
 
 class CreatePlaylistRequest(BaseModel):
@@ -17,6 +19,8 @@ class CreatePlaylistRequest(BaseModel):
 
 app = FastAPI(title="SmartDiscover API", version="0.1.0")
 pipeline = RecommendationPipeline()
+prompt_store = PromptStore()
+logger = logging.getLogger(__name__)
 app.mount("/static", StaticFiles(directory="web"), name="static")
 
 
@@ -53,8 +57,21 @@ async def llm_health() -> dict:
 
 
 @app.post("/recommend", response_model=RecommendResponse)
-async def recommend(payload: RecommendRequest) -> RecommendResponse:
-    return await pipeline.run(payload)
+async def recommend(payload: RecommendRequest, request: Request) -> RecommendResponse:
+    response = await pipeline.run(payload)
+
+    try:
+        await prompt_store.save_prompt(
+            prompt_text=payload.text,
+            target_count=payload.target_count,
+            source="web",
+            client_ip=request.client.host if request.client else None,
+            user_agent=request.headers.get("user-agent"),
+        )
+    except Exception as exc:
+        logger.warning("Failed to persist prompt to Supabase: %s", exc)
+
+    return response
 
 
 @app.get("/auth/login")

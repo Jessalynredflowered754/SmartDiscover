@@ -35,6 +35,15 @@
             <label id="intentLabel" for="intentInput">Apa mood atau aktivitasmu?</label>
             <textarea id="intentInput" rows="2" placeholder="contoh: lagu sedih pas nge-bug jam 2 pagi..." required></textarea>
           </div>
+
+          <div class="quick-prompts fade-in delay-2" id="quickPrompts">
+            <p id="quickPromptLabel" class="label">Coba Prompt Bebas:</p>
+            <div class="chips">
+              <button id="chipFocus" class="chip-btn" type="button" data-intent="lagu fokus buat kerja malam hari" data-intent-id="lagu fokus buat kerja malam hari" data-intent-en="focus songs for late night work">Fokus Kerja</button>
+              <button id="chipRain" class="chip-btn" type="button" data-intent="jalanan hujan malam sendirian" data-intent-id="jalanan hujan malam sendirian" data-intent-en="rainy midnight drive alone">Hujan Malam</button>
+              <button id="chipWorkout" class="chip-btn" type="button" data-intent="workout keras angkat beban" data-intent-id="workout keras angkat beban" data-intent-en="high energy gym workout mix">Workout</button>
+            </div>
+          </div>
           
           <div class="input-group row-group">
              <div>
@@ -55,15 +64,6 @@
             <span id="submitText" class="shimmer-text">Mulai Kurasi</span>
           </button>
         </form>
-
-        <div class="quick-prompts fade-in delay-2" id="quickPrompts">
-          <p id="quickPromptLabel" class="label">Coba Prompt Bebas:</p>
-          <div class="chips">
-            <button id="chipFocus" class="chip-btn" type="button" data-intent="lagu fokus buat kerja malam hari" data-intent-id="lagu fokus buat kerja malam hari" data-intent-en="focus songs for late night work">Fokus Kerja</button>
-            <button id="chipRain" class="chip-btn" type="button" data-intent="jalanan hujan malam sendirian" data-intent-id="jalanan hujan malam sendirian" data-intent-en="rainy midnight drive alone">Hujan Malam</button>
-            <button id="chipWorkout" class="chip-btn" type="button" data-intent="workout keras angkat beban" data-intent-id="workout keras angkat beban" data-intent-en="high energy gym workout mix">Workout</button>
-          </div>
-        </div>
 
         <div class="system-actions fade-in delay-3">
           <button id="spotifyLoginBtn" class="magic-btn-outline" type="button">Connect Spotify</button>

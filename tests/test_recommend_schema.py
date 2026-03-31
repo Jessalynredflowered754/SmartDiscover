@@ -6,6 +6,44 @@ from app.main import app
 client = TestClient(app)
 
 
+def _fake_recommend_response(target_count: int = 5) -> dict:
+    recommendations = [
+        {
+            "rank": i,
+            "title": f"Track {i}",
+            "artist": "Artist",
+            "spotify_url": "https://open.spotify.com/track/test",
+            "preview_url": "",
+            "why": "Reason",
+            "score": 0.9,
+        }
+        for i in range(1, target_count + 1)
+    ]
+    return {
+        "summary": {
+            "target_count": target_count,
+            "returned_count": len(recommendations),
+        },
+        "intent_profile": {
+            "mood": "neutral",
+            "activity": "listening",
+            "genre": [],
+            "energy": "medium",
+            "language": "id",
+            "locale": "",
+            "strict_locale": False,
+        },
+        "query_strategy": {"queries": ["test"]},
+        "recommendations": recommendations,
+        "quality_notes": {
+            "llm_profiler_used": False,
+            "llm_ranker_used": False,
+            "fallback_used": False,
+            "fallback_reason": "",
+        },
+    }
+
+
 def test_recommend_default_schema_and_count() -> None:
     response = client.post(
         "/recommend",
@@ -58,3 +96,55 @@ def test_spotify_health_endpoint() -> None:
     assert "status" in body
     assert "ok" in body
     assert "details" in body
+
+
+def test_recommend_persists_prompt_without_breaking_schema(monkeypatch) -> None:
+    async def fake_run(_payload):
+        return _fake_recommend_response(5)
+
+    captured: dict = {}
+
+    async def fake_save_prompt(**kwargs):
+        captured.update(kwargs)
+        return True
+
+    monkeypatch.setattr("app.main.pipeline.run", fake_run)
+    monkeypatch.setattr("app.main.prompt_store.save_prompt", fake_save_prompt)
+
+    response = client.post(
+        "/recommend",
+        json={"text": "lagu fokus kerja", "target_count": 5},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert set(body.keys()) == {
+        "summary",
+        "intent_profile",
+        "query_strategy",
+        "recommendations",
+        "quality_notes",
+    }
+    assert captured["prompt_text"] == "lagu fokus kerja"
+    assert captured["target_count"] == 5
+    assert captured["source"] == "web"
+
+
+def test_recommend_still_success_when_prompt_persist_fails(monkeypatch) -> None:
+    async def fake_run(_payload):
+        return _fake_recommend_response(5)
+
+    async def fake_save_prompt(**_kwargs):
+        raise RuntimeError("supabase down")
+
+    monkeypatch.setattr("app.main.pipeline.run", fake_run)
+    monkeypatch.setattr("app.main.prompt_store.save_prompt", fake_save_prompt)
+
+    response = client.post(
+        "/recommend",
+        json={"text": "lagu santai malam", "target_count": 5},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["summary"]["returned_count"] == 5

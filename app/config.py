@@ -19,6 +19,10 @@ class Settings(BaseSettings):
 
     top_k_default: int = Field(default=15, validation_alias="TOP_K_DEFAULT")
 
+    supabase_url: str = Field(default="", validation_alias="SUPABASE_URL")
+    supabase_api_key: str = Field(default="", validation_alias="SUPABASE_API_KEY")
+    supabase_prompt_table: str = Field(default="prompt_logs", validation_alias="SUPABASE_PROMPT_TABLE")
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
 
