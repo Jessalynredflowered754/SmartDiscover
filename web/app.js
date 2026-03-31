@@ -93,6 +93,37 @@ if (!supportedLangs.has(currentLang)) {
   currentLang = "id";
 }
 
+const IOS_VIEWPORT_BASE = "width=device-width, initial-scale=1.0, viewport-fit=cover";
+
+function isIOSWebKitBrowser() {
+  const ua = navigator.userAgent || "";
+  const isIOSDevice = /iP(hone|ad|od)/i.test(ua)
+    || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  return isIOSDevice && /WebKit/i.test(ua);
+}
+
+const isIOSWebKit = isIOSWebKitBrowser();
+if (isIOSWebKit) {
+  document.documentElement.classList.add("ios-webkit");
+}
+
+function normalizeIOSViewportScale() {
+  if (!isIOSWebKit) {
+    return;
+  }
+
+  const viewportMeta = document.querySelector('meta[name="viewport"]');
+  if (!(viewportMeta instanceof HTMLMetaElement)) {
+    return;
+  }
+
+  // Reset accidental zoom state on real iOS WebKit after dynamic DOM insertion.
+  viewportMeta.setAttribute("content", `${IOS_VIEWPORT_BASE}, maximum-scale=1`);
+  requestAnimationFrame(() => {
+    viewportMeta.setAttribute("content", IOS_VIEWPORT_BASE);
+  });
+}
+
 const I18N = {
   id: {
     subtitle: "AI-Driven Spotify Curation in a single prompt.",
@@ -1202,6 +1233,7 @@ async function requestRecommendations(event) {
     const data = await response.json();
     renderSummary(data);
     renderRecommendations(data, text);
+    normalizeIOSViewportScale();
 
     const quality = data.quality_notes || {};
     const profilerMode = quality.llm_profiler_used ? "LLM" : "heuristic";
